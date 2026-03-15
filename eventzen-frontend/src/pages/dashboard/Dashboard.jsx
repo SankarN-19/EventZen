@@ -37,7 +37,11 @@ const Dashboard = () => {
                     bookings: bookingsRes.data.data.length || 0,
                     users: usersRes.data.data.totalElements || usersRes.data.data.content?.length || 0,
                 });
-                setRecentBookings(bookingsRes.data.data.slice(0, 5));
+                setRecentBookings(
+                    [...bookingsRes.data.data]
+                        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                        .slice(0, 25)
+                );
             } catch (err) {
                 console.error('Dashboard fetch error:', err);
             } finally {

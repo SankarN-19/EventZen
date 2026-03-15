@@ -10,16 +10,17 @@ import BookingsPage from './pages/bookings/BookingsPage';
 import BudgetPage from './pages/budget/BudgetPage';
 import BrowsePage from './pages/browse/BrowsePage';
 import MyBookingsPage from './pages/browse/MyBookingsPage';
-import VendorsPage   from './pages/vendors/VendorsPage';
+import VendorsPage from './pages/vendors/VendorsPage';
 import AttendeesPage from './pages/attendees/AttendeesPage';
+import HomePage from './pages/home/HomePage';
 
 const App = () => (
   <AuthProvider>
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/" element={<Navigate to="/login" replace />} />
 
         <Route path="/dashboard" element={<ProtectedRoute adminOnly><Dashboard /></ProtectedRoute>} />
         <Route path="/venues" element={<ProtectedRoute adminOnly><VenuesPage /></ProtectedRoute>} />

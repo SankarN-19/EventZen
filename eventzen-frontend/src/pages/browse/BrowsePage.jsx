@@ -30,12 +30,14 @@ const BrowsePage = () => {
                 attendeeName: form.attendeeName,
                 attendeeEmail: form.attendeeEmail
             });
-            toast.success(res.data.message);
+            toast.success('Booking confirmed!');
             setBookingEvent(null);
             setForm({ attendeeName: '', attendeeEmail: '' });
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Booking failed');
-        } finally { setSaving(false); }
+            toast.error(err?.response?.data?.message || 'Booking failed');
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (

@@ -11,7 +11,7 @@ const Navbar = () => {
         try { await logoutUser(); } catch { }
         logout();
         toast.success('Logged out successfully');
-        navigate('/login');
+        navigate('/');
     };
 
     return (
