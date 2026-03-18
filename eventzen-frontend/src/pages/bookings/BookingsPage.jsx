@@ -48,7 +48,7 @@ const BookingsPage = () => {
             (b.eventId?.title || '').toLowerCase().includes(search.toLowerCase());
         const matchesStatus = statusFilter === 'ALL' || b.status === statusFilter;
         return matchesSearch && matchesStatus;
-    });
+    }).slice().reverse();
 
     return (
         <Layout>

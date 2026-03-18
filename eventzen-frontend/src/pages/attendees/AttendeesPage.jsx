@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
-import { getAllUsers } from '../../api/authApi';
-import { getAllEvents } from '../../api/eventApi';
+import { getAllBookings } from '../../api/bookingApi';
 import { userApi } from './../../api/axiosInstances';
 import toast from 'react-hot-toast';
-import SearchBar from '../../components/SearchBar';
+import { getAllEvents } from '../../api/eventApi';
 
-const emptyForm = { userId: '', phone: '', address: '', eventId: '' };
+const emptyForm = { userId: '', phone: '', address: '', eventId: '', attendeeName: '' };
 
 const AttendeesPage = () => {
     const [attendees, setAttendees] = useState([]);
-    const [users, setUsers] = useState([]);
+    const [bookings, setBookings] = useState([]);
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -18,19 +17,34 @@ const AttendeesPage = () => {
     const [saving, setSaving] = useState(false);
     const [search, setSearch] = useState('');
 
-    const fetchAttendees = async () => {
+    const fetchAll = async () => {
         try {
-            const res = await userApi.get('/attendees');
-            setAttendees(res.data.data || []);
-        } catch { toast.error('Failed to fetch attendees'); }
+            const [attendeesRes, bookingsRes, eventsRes] = await Promise.all([
+                userApi.get('/attendees'),
+                getAllBookings(),
+                getAllEvents({})
+            ]);
+            setAttendees(attendeesRes.data.data || []);
+            // Only show CONFIRMED bookings in dropdown
+            setBookings((bookingsRes.data.data || []).filter(b => b.status === 'CONFIRMED'));
+            setEvents(eventsRes.data.data.content || []);
+        } catch { toast.error('Failed to fetch data'); }
         finally { setLoading(false); }
     };
 
-    useEffect(() => {
-        fetchAttendees();
-        getAllUsers(0, 100).then(res => setUsers(res.data.data.content || []));
-        getAllEvents({}).then(res => setEvents(res.data.data.content || []));
-    }, []);
+    useEffect(() => { fetchAll(); }, []);
+
+    // When admin selects a booking — auto fill name and event
+    const handleBookingSelect = (bookingId) => {
+        const booking = bookings.find(b => b._id === bookingId);
+        if (!booking) return;
+        setForm({
+            ...form,
+            userId: booking.userId,
+            attendeeName: booking.attendeeName,
+            eventId: booking.eventId?._id || booking.eventId || ''
+        });
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -39,12 +53,13 @@ const AttendeesPage = () => {
             await userApi.post(`/attendees?userId=${form.userId}`, {
                 phone: form.phone,
                 address: form.address,
-                eventId: form.eventId ? Number(form.eventId) : null
+                eventId: form.eventId || null,
+                attendeeName: form.attendeeName
             });
             toast.success('Attendee added successfully');
             setShowModal(false);
             setForm(emptyForm);
-            fetchAttendees();
+            fetchAll();
         } catch (err) {
             toast.error(err.response?.data?.message || 'Operation failed');
         } finally { setSaving(false); }
@@ -55,34 +70,27 @@ const AttendeesPage = () => {
         try {
             await userApi.delete(`/attendees/${id}`);
             toast.success('Attendee removed');
-            fetchAttendees();
+            fetchAll();
         } catch { toast.error('Failed to remove attendee'); }
     };
 
-    const getEventTitle = (eventId) => {
-        if (!eventId) return '—';
-        const found = events.find(e => {
-            const venueIdNum = e.venueId;
-            return String(venueIdNum) === String(eventId);
-        });
-        return found ? found.title : `Event #${eventId}`;
-    };
-
     const filtered = attendees.filter(a =>
-        (a.user?.name || '').toLowerCase().includes(search.toLowerCase()) ||
-        (a.user?.email || '').toLowerCase().includes(search.toLowerCase()) ||
-        (a.phone || '').includes(search)
+        a.user?.name?.toLowerCase().includes(search.toLowerCase()) ||
+        a.user?.email?.toLowerCase().includes(search.toLowerCase()) ||
+        a.phone?.includes(search)
     );
 
     return (
         <Layout>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center justify-between mb-6">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Attendees</h1>
                     <p className="text-gray-500 text-sm mt-1">Track physical event participants</p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <SearchBar value={search} onChange={setSearch} placeholder="Search name, email, phone..." />
+                <div className="flex gap-3">
+                    <input type="text" placeholder="Search name, email, phone..."
+                        value={search} onChange={e => setSearch(e.target.value)}
+                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-64" />
                     <button onClick={() => { setForm(emptyForm); setShowModal(true); }}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
                         + Add Attendee
@@ -103,20 +111,28 @@ const AttendeesPage = () => {
                                 <th className="px-6 py-3 text-left">Email</th>
                                 <th className="px-6 py-3 text-left">Phone</th>
                                 <th className="px-6 py-3 text-left">Address</th>
-                                <th className="px-6 py-3 text-left">Event ID</th>
+                                <th className="px-6 py-3 text-left">Event</th>
                                 <th className="px-6 py-3 text-left">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {filtered.length === 0 ? (
-                                <tr><td colSpan={6} className="text-center py-10 text-gray-400">No attendees found</td></tr>
+                                <tr><td colSpan={6} className="text-center py-10 text-gray-400">
+                                    {search ? 'No results found' : 'No attendees found'}
+                                </td></tr>
                             ) : filtered.map(a => (
                                 <tr key={a.id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 font-medium text-gray-800">{a.user?.name || '—'}</td>
+                                    <td className="px-6 py-4 font-medium text-gray-800">{a.attendeeName || a.user?.name || '—'}</td>
                                     <td className="px-6 py-4 text-gray-500">{a.user?.email || '—'}</td>
                                     <td className="px-6 py-4 text-gray-500">{a.phone || '—'}</td>
                                     <td className="px-6 py-4 text-gray-500">{a.address || '—'}</td>
-                                    <td className="px-6 py-4 text-gray-500">{a.eventId || '—'}</td>
+                                    <td className="px-6 py-4">
+                                        {a.eventId ? (
+                                            <span className="bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded-full font-medium">
+                                                {events.find(e => e._id === a.eventId)?.title || `Event #${a.eventId}`}
+                                            </span>
+                                        ) : '—'}
+                                    </td>
                                     <td className="px-6 py-4">
                                         <button onClick={() => handleDelete(a.id)}
                                             className="text-red-500 hover:underline text-xs font-medium">Remove</button>
@@ -131,19 +147,32 @@ const AttendeesPage = () => {
             {showModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-                        <h2 className="text-lg font-semibold text-gray-800 mb-4">Add Attendee Record</h2>
+                        <h2 className="text-lg font-semibold text-gray-800 mb-1">Add Attendee Record</h2>
+                        <p className="text-xs text-gray-400 mb-4">Select from confirmed bookings — these are people who registered for an event.</p>
                         <form onSubmit={handleSubmit} className="space-y-3">
+
+                            {/* Booking dropdown — shows confirmed bookings */}
                             <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">Select User</label>
-                                <select required value={form.userId}
-                                    onChange={e => setForm({ ...form, userId: e.target.value })}
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                    Select from Confirmed Bookings
+                                </label>
+                                <select required
+                                    onChange={e => handleBookingSelect(e.target.value)}
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <option value="">— Select a registered user —</option>
-                                    {users.map(u => (
-                                        <option key={u.id} value={u.id}>{u.name} — {u.email}</option>
+                                    <option value="">— Select a booking —</option>
+                                    {bookings.map(b => (
+                                        <option key={b._id} value={b._id}>
+                                            {b.attendeeName} — {b.eventId?.title || 'Event'}
+                                        </option>
                                     ))}
                                 </select>
+                                {form.attendeeName && (
+                                    <p className="text-xs text-blue-600 mt-1">
+                                        ✓ {form.attendeeName} selected
+                                    </p>
+                                )}
                             </div>
+
                             <div>
                                 <label className="block text-xs font-medium text-gray-600 mb-1">Phone</label>
                                 <input type="text" required value={form.phone}
@@ -156,33 +185,6 @@ const AttendeesPage = () => {
                                 <input type="text" required value={form.address}
                                     onChange={e => setForm({ ...form, address: e.target.value })}
                                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                            </div>
-
-                            {/* Event dropdown for reference + numeric ID input */}
-                            <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">
-                                    Event <span className="text-gray-400">(optional)</span>
-                                </label>
-                                <select
-                                    onChange={e => {
-                                        const selected = events.find(ev => ev._id === e.target.value);
-                                        // Extract just the index position as a simple number
-                                        const idx = events.findIndex(ev => ev._id === e.target.value) + 1;
-                                        setForm({ ...form, eventId: idx.toString(), _selectedEventTitle: selected?.title || '' });
-                                    }}
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <option value="">— Select an event —</option>
-                                    {events.map((ev, idx) => (
-                                        <option key={ev._id} value={ev._id}>
-                                            {ev.title} — {new Date(ev.date).toLocaleDateString('en-IN')}
-                                        </option>
-                                    ))}
-                                </select>
-                                {form._selectedEventTitle && (
-                                    <p className="text-xs text-blue-600 mt-1">
-                                        Selected: {form._selectedEventTitle} (ID: {form.eventId})
-                                    </p>
-                                )}
                             </div>
 
                             <div className="flex gap-3 pt-2">

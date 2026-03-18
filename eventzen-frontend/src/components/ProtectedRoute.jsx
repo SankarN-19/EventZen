@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const ProtectedRoute = ({ children, adminOnly = false }) => {
+const ProtectedRoute = ({ children, adminOnly = false, clientOnly = false }) => {
     const { user, loading } = useAuth();
 
     if (loading) return (
@@ -11,7 +11,7 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     );
 
     if (!user) return <Navigate to="/" replace />;
-    if (adminOnly && user.role !== 'ADMIN') return <Navigate to="/browse" replace />;
+    if (adminOnly && user.role !== 'ADMIN') return <Navigate to="/attendee-dashboard" replace />;
 
     return children;
 };

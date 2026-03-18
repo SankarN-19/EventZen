@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const eventRoutes = require('./src/routes/eventRoutes');
 const bookingRoutes = require('./src/routes/bookingRoutes');
 const budgetRoutes = require('./src/routes/budgetRoutes');
+const eventRequestRoutes = require('./src/routes/eventRequestRoutes');
 const errorHandler = require('./src/middleware/errorHandler');
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use('/events', eventRoutes);
 app.use('/bookings', bookingRoutes);
 app.use('/budgets', budgetRoutes);
+app.use('/event-requests', eventRequestRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

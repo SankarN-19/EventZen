@@ -10,15 +10,17 @@ public class Attendee {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     private String phone;
     private String address;
 
     // Soft reference — no FK constraint to Event Service
-    private Long eventId;
+    private String eventId;
+
+    private String attendeeName;
 
     public Attendee() {}
 
@@ -31,6 +33,8 @@ public class Attendee {
     public void setPhone(String phone) { this.phone = phone; }
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
-    public Long getEventId() { return eventId; }
-    public void setEventId(Long eventId) { this.eventId = eventId; }
+    public String getEventId() { return eventId; }
+    public void setEventId(String eventId) { this.eventId = eventId; }
+    public String getAttendeeName() { return attendeeName; }
+    public void setAttendeeName(String attendeeName) { this.attendeeName = attendeeName; }
 }

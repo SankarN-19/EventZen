@@ -31,9 +31,17 @@ const Navbar = () => {
                         <Link to="/budget" className="text-sm text-gray-600 hover:text-blue-600 font-medium">Budget</Link>
                         <Link to="/vendors" className="text-sm text-gray-600 hover:text-blue-600 font-medium">Vendors</Link>
                         <Link to="/attendees" className="text-sm text-gray-600 hover:text-blue-600 font-medium">Attendees</Link>
+                        <Link to="/event-requests" className="text-sm text-gray-600 hover:text-blue-600 font-medium">Requests</Link>
+                    </>
+                ) : user?.role === 'CLIENT' ? (
+                    <>
+                        <Link to="/client-dashboard" className="text-sm text-gray-600 hover:text-blue-600 font-medium">Home</Link>
+                        <Link to="/request-event" className="text-sm text-gray-600 hover:text-blue-600 font-medium">Request Event</Link>
+                        <Link to="/my-requests" className="text-sm text-gray-600 hover:text-blue-600 font-medium">My Requests</Link>
                     </>
                 ) : (
                     <>
+                        <Link to="/attendee-dashboard" className="text-sm text-gray-600 hover:text-blue-600 font-medium">Home</Link>
                         <Link to="/browse" className="text-sm text-gray-600 hover:text-blue-600 font-medium">Browse Events</Link>
                         <Link to="/my-bookings" className="text-sm text-gray-600 hover:text-blue-600 font-medium">My Bookings</Link>
                     </>
@@ -42,9 +50,9 @@ const Navbar = () => {
                 <div className="flex items-center gap-3 ml-4 pl-4 border-l border-gray-200">
                     <span className="text-sm text-gray-500">{user?.email}</span>
                     <span className={`text-xs px-2 py-1 rounded-full font-semibold
-                        ${user?.role === 'ADMIN'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-green-100 text-green-700'}`}>
+                        ${user?.role === 'ADMIN' ? 'bg-blue-100 text-blue-700' :
+                            user?.role === 'CLIENT' ? 'bg-purple-100 text-purple-700' :
+                                'bg-green-100 text-green-700'}`}>
                         {user?.role}
                     </span>
                     <button onClick={handleLogout}

@@ -4,6 +4,7 @@ import { getAllEvents } from '../../api/eventApi';
 import { createBooking } from '../../api/bookingApi';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import { Link } from 'react-router-dom';
 
 const BrowsePage = () => {
     const { user } = useAuth();
@@ -42,9 +43,17 @@ const BrowsePage = () => {
 
     return (
         <Layout>
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Browse Events</h1>
-                <p className="text-gray-500 text-sm mt-1">Find and book upcoming events</p>
+            <div className="flex items-center justify-between mb-6">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900">Browse Events</h1>
+                    <p className="text-gray-500 text-sm mt-1">Find and book upcoming events</p>
+                </div>
+                {user?.role === 'CLIENT' && (
+                    <Link to="/request-event"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
+                        + Request an Event
+                    </Link>
+                )}
             </div>
 
             {loading ? (

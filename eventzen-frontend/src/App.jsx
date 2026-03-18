@@ -13,6 +13,11 @@ import MyBookingsPage from './pages/browse/MyBookingsPage';
 import VendorsPage from './pages/vendors/VendorsPage';
 import AttendeesPage from './pages/attendees/AttendeesPage';
 import HomePage from './pages/home/HomePage';
+import RequestEventPage from './pages/browse/RequestEventPage';
+import MyRequestsPage from './pages/browse/MyRequestsPage';
+import EventRequestsPage from './pages/requests/EventRequestsPage';
+import ClientDashboard from './pages/client/ClientDashboard';
+import AttendeeDashboard from './pages/attendees/AttendeeDashboard';
 
 const App = () => (
   <AuthProvider>
@@ -29,9 +34,15 @@ const App = () => (
         <Route path="/budget" element={<ProtectedRoute adminOnly><BudgetPage /></ProtectedRoute>} />
         <Route path="/vendors" element={<ProtectedRoute adminOnly><VendorsPage /></ProtectedRoute>} />
         <Route path="/attendees" element={<ProtectedRoute adminOnly><AttendeesPage /></ProtectedRoute>} />
+        <Route path="/event-requests" element={<ProtectedRoute adminOnly><EventRequestsPage /></ProtectedRoute>} />
 
         <Route path="/browse" element={<ProtectedRoute><BrowsePage /></ProtectedRoute>} />
         <Route path="/my-bookings" element={<ProtectedRoute><MyBookingsPage /></ProtectedRoute>} />
+        <Route path="/attendee-dashboard" element={<ProtectedRoute><AttendeeDashboard /></ProtectedRoute>} />
+
+        <Route path="/client-dashboard" element={<ProtectedRoute><ClientDashboard /></ProtectedRoute>} />
+        <Route path="/request-event" element={<ProtectedRoute><RequestEventPage /></ProtectedRoute>} />
+        <Route path="/my-requests" element={<ProtectedRoute><MyRequestsPage /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   </AuthProvider>
