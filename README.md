@@ -6,7 +6,7 @@
 
 ## Overview
 
-EventZen is a digital platform that enables an **Admin** to manage venues, vendors, events, bookings, attendees, and budgets — while providing **Customers** a seamless self-service portal to browse events and make bookings.
+EventZen is a digital platform that brings together venue management, vendor coordination, attendee bookings, and budget tracking into one unified system. The platform supports three distinct user roles — **Admin**, **Client**, and **Attendee** — each with their own dedicated dashboard and workflow.
 
 ---
 
@@ -32,7 +32,7 @@ EventZenVenueService/            → Spring Boot           → Port 8082  →  M
 EventZenEventBookingService/     → Node.js + Express     → Port 8083  →  MongoDB (eventzen_events)
 ```
 
-Each service is **independently deployable** and owns its own database. JWT tokens are issued only by the User Service and validated by all other services using a shared secret.
+Each service is **independently deployable** and owns its own database. JWT tokens are issued only by the User Service and validated by all other services using a shared secret. The React frontend acts as the glue — making separate API calls to each service and combining the results into one unified UI.
 
 ---
 
@@ -42,9 +42,56 @@ Each service is **independently deployable** and owns its own database. JWT toke
 EventZen/
 ├── EventZenUserAttendeeService/    # Spring Boot — Auth, Users, Attendees
 ├── EventZenVenueService/           # Spring Boot — Venues, Vendors
-├── EventZenEventBookingService/    # Node.js — Events, Bookings, Budgets
-└── eventzen-frontend/              # React — Admin Dashboard + Customer Portal
+├── EventZenEventBookingService/    # Node.js — Events, Bookings, Budgets, Event Requests
+└── eventzen-frontend/              # React — Landing Page, Admin Dashboard, Client Portal, Attendee Portal
 ```
+
+---
+
+## User Roles
+
+| Role | After Login | What They Can Do |
+|---|---|---|
+| **ADMIN** | `/dashboard` | Manage venues, vendors, events, bookings, attendees, budgets, event requests |
+| **CLIENT** | `/client-dashboard` | Submit event requests, track request status with admin responses |
+| **ATTENDEE** | `/attendee-dashboard` | Browse upcoming events, book seats, view and cancel own bookings |
+
+---
+
+## Pages & Features
+
+### Admin
+| Page | Route | Description |
+|---|---|---|
+| Dashboard | `/dashboard` | Stats overview, recent bookings |
+| Venues | `/venues` | Full CRUD, activate/deactivate toggle |
+| Vendors | `/vendors` | Add service providers, link to venues |
+| Events | `/events` | Full CRUD with venue dropdown |
+| Bookings | `/bookings` | Approve/reject all bookings |
+| Attendees | `/attendees` | Physical check-in registry |
+| Budget | `/budget` | Budget creation, expense tracking, progress bar |
+| Event Requests | `/event-requests` | Review, approve/reject client requests with notes |
+
+### Client
+| Page | Route | Description |
+|---|---|---|
+| Client Dashboard | `/client-dashboard` | Welcome banner, request stats, recent requests |
+| Request an Event | `/request-event` | Submit event requirements form |
+| My Requests | `/my-requests` | Track status, view admin notes |
+
+### Attendee
+| Page | Route | Description |
+|---|---|---|
+| Attendee Dashboard | `/attendee-dashboard` | Welcome banner, booking stats, upcoming events |
+| Browse Events | `/browse` | Event cards, Book Now modal |
+| My Bookings | `/my-bookings` | Booking history, cancel option |
+
+### Public
+| Page | Route | Description |
+|---|---|---|
+| Landing Page | `/` | Product homepage with features, how it works, testimonials |
+| Login | `/login` | JWT login with role-based redirect |
+| Register | `/register` | Registration with 3 role selector cards |
 
 ---
 
@@ -63,6 +110,10 @@ EventZen/
 ```sql
 CREATE DATABASE eventzen_users;
 CREATE DATABASE eventzen_venues;
+
+-- Add CLIENT to role enum
+USE eventzen_users;
+ALTER TABLE users MODIFY COLUMN role ENUM('ADMIN', 'ATTENDEE', 'CLIENT') NOT NULL DEFAULT 'ATTENDEE';
 ```
 
 MongoDB database `eventzen_events` is created automatically on first run.
@@ -116,6 +167,7 @@ spring.datasource.url=jdbc:mysql://localhost:3306/eventzen_users
 spring.datasource.username=root
 spring.datasource.password=YOUR_PASSWORD
 jwt.secret=YOUR_JWT_SECRET
+jwt.expiration=86400000
 ```
 
 ### Node.js Service — `.env`
@@ -185,33 +237,51 @@ JWT_SECRET=YOUR_JWT_SECRET
 | GET | /budgets/event/:eventId | Admin Only |
 | POST | /budgets/:id/expenses | Admin Only |
 | DELETE | /budgets/:id/expenses/:expenseId | Admin Only |
+| POST | /event-requests | JWT Required |
+| GET | /event-requests | Admin Only |
+| GET | /event-requests/my | JWT Required |
+| PUT | /event-requests/:id/approve | Admin Only |
+| PUT | /event-requests/:id/reject | Admin Only |
+| DELETE | /event-requests/:id | Admin Only |
 
 ---
 
-## Features
+## Real World Flow
 
-### Admin
-- Manage Venues — create, edit, deactivate, reactivate
-- Manage Vendors — link service providers to venues
-- Manage Events — full CRUD with venue dropdown
-- Manage Bookings — approve, reject, view all
-- Track Attendees — physical check-in register
-- Track Budget — set budget, log expenses, auto-calculate spent and remaining
+### Client Flow
+1. **Vikram Nair** registers as **CLIENT**
+2. Logs in → lands on Client Dashboard
+3. Clicks **Request an Event** → fills title, date, capacity, venue preference, budget
+4. Submits → status shows **PENDING**
+5. Admin reviews and approves with a note → status becomes **APPROVED**
+6. Admin creates the actual event on the platform based on the request
 
-### Customer
-- Browse upcoming events
-- Book an event (auto-waitlisted if full)
-- View personal booking history
-- Cancel bookings
+### Admin Flow
+1. **Romal Shetty** logs in as **ADMIN**
+2. Creates Venues and links Vendors to each venue
+3. Creates Events based on approved client requests
+4. Reviews bookings — approves or rejects
+5. Sets up budget per event, logs expenses
+6. Marks physical attendees in the Attendees registry
+
+### Attendee Flow
+1. **Sankar N** registers as **ATTENDEE**
+2. Logs in → lands on Attendee Dashboard
+3. Browses upcoming events → clicks **Book Now**
+4. Gets **CONFIRMED** booking (or **WAITLISTED** if event is full)
+5. Views booking in My Bookings, cancels if needed
 
 ---
 
-## User Roles
+## Problem Statement Addressed
 
-| Role | Access |
+| Challenge | Solution |
 |---|---|
-| ADMIN | Full platform access — all pages and all APIs |
-| ATTENDEE | Browse events, book, view own bookings, cancel |
+| Manual Event Scheduling | Digital Events + Venues module with full CRUD and venue dropdown |
+| Inefficient Attendee Management | Bookings module + Attendees check-in registry + auto-waitlisting |
+| Complex Budget Tracking | Budget module with auto-calculated spent and remaining, progress bar |
+| Limited Customer Engagement | Browse Events + My Bookings self-service portal for attendees |
+| No Client Communication Channel | Event Request system — clients submit requirements, admin responds with notes |
 
 ---
 
@@ -220,19 +290,9 @@ JWT_SECRET=YOUR_JWT_SECRET
 | Name | Email | Role |
 |---|---|---|
 | Romal Shetty | romal@eventzen.com | ADMIN |
+| Vikram Nair | vikram@gmail.com | CLIENT |
 | Sankar N | sankar@gmail.com | ATTENDEE |
 | Priya Mehta | priya@gmail.com | ATTENDEE |
-
----
-
-## Problem Statement Addressed
-
-| Challenge | Solution |
-|---|---|
-| Manual Event Scheduling | Digital Events + Venues module with full CRUD |
-| Inefficient Attendee Management | Bookings module + Attendees check-in register |
-| Complex Budget Tracking | Budget module with auto-calculated spent and remaining |
-| Limited Customer Engagement | Browse Events + My Bookings self-service portal |
 
 ---
 
