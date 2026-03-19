@@ -80,6 +80,16 @@ const EventsPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
+        if (new Date(form.date) < new Date()) {
+            toast.error('Event date cannot be in the past');
+            setSaving(false);
+            return;
+        }
+        if (Number(form.capacity) < 1) {
+            toast.error('Capacity must be at least 1');
+            setSaving(false);
+            return;
+        }
         try {
             const payload = {
                 ...form,

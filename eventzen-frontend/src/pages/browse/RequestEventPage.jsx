@@ -22,6 +22,16 @@ const RequestEventPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
+        if (new Date(form.expectedDate) < new Date()) {
+            toast.error('Expected date cannot be in the past');
+            setSaving(false);
+            return;
+        }
+        if (Number(form.expectedCapacity) < 1) {
+            toast.error('Capacity must be at least 1');
+            setSaving(false);
+            return;
+        }
         try {
             await createEventRequest({
                 ...form,

@@ -12,6 +12,11 @@ const Register = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        if (form.password.length < 6) {
+            toast.error('Password must be at least 6 characters');
+            setLoading(false);
+            return;
+        }
         try {
             await registerUser(form);
             toast.success('Account created! Please login.');
