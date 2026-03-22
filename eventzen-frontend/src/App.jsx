@@ -18,6 +18,7 @@ import MyRequestsPage from './pages/browse/MyRequestsPage';
 import EventRequestsPage from './pages/requests/EventRequestsPage';
 import ClientDashboard from './pages/client/ClientDashboard';
 import AttendeeDashboard from './pages/attendees/AttendeeDashboard';
+import ProfilePage from './pages/profile/ProfilePage';
 
 const App = () => (
   <AuthProvider>
@@ -43,6 +44,8 @@ const App = () => (
         <Route path="/client-dashboard" element={<ProtectedRoute><ClientDashboard /></ProtectedRoute>} />
         <Route path="/request-event" element={<ProtectedRoute><RequestEventPage /></ProtectedRoute>} />
         <Route path="/my-requests" element={<ProtectedRoute><MyRequestsPage /></ProtectedRoute>} />
+
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   </AuthProvider>

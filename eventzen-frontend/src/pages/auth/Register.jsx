@@ -123,7 +123,7 @@ const Register = () => {
                                         {
                                             value: 'ADMIN',
                                             icon: '🏛️',
-                                            label: 'Organizer',
+                                            label: 'Admin',
                                             desc: 'Manage the platform'
                                         },
                                     ].map(({ value, icon, label, desc }) => (
