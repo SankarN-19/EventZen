@@ -47,6 +47,7 @@ public class AuthService {
         data.put("email", user.getEmail());
         data.put("role", user.getRole());
         data.put("id", user.getId());
+        data.put("name", user.getName());
         return data;
     }
 }

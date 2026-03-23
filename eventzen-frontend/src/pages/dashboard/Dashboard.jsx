@@ -4,6 +4,7 @@ import { getAllVenues } from '../../api/venueApi';
 import { getAllEvents } from '../../api/eventApi';
 import { getAllBookings } from '../../api/bookingApi';
 import { getAllUsers } from '../../api/authApi';
+import { useAuth } from '../../context/AuthContext';
 
 const StatCard = ({ title, value, subtitle, color }) => (
     <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
@@ -14,6 +15,7 @@ const StatCard = ({ title, value, subtitle, color }) => (
 );
 
 const Dashboard = () => {
+    const { user } = useAuth();
     const [stats, setStats] = useState({
         venues: 0, events: 0, bookings: 0, users: 0
     });
@@ -70,7 +72,7 @@ const Dashboard = () => {
         <Layout>
             <div className="mb-8">
                 <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-                <p className="text-gray-500 text-sm mt-1">Welcome back, Admin</p>
+                <p className="text-gray-500 text-sm mt-1">Welcome back, {user?.name}</p>
             </div>
 
             {/* Stat Cards */}

@@ -16,9 +16,9 @@ const Login = () => {
         setLoading(true);
         try {
             const res = await loginUser(form);
-            const { token, email, role, id } = res.data.data;
-            login(token, { email, role, id });
-            toast.success('Welcome back!');
+            const { token, email, role, id, name } = res.data.data;
+            login(token, { email, role, id, name });
+            toast.success(`Welcome back, ${name}!`);
             navigate(
                 role === 'ADMIN' ? '/dashboard' :
                     role === 'CLIENT' ? '/client-dashboard' :

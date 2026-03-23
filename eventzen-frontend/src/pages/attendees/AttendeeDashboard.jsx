@@ -41,7 +41,7 @@ const AttendeeDashboard = () => {
             <div className="bg-gradient-to-r from-green-500 to-teal-600 rounded-2xl px-8 py-8 mb-8 flex items-center justify-between">
                 <div>
                     <p className="text-green-100 text-sm font-medium mb-1">Welcome back 👋</p>
-                    <h1 className="text-2xl font-bold text-white">{user?.email?.split('@')[0]?.charAt(0).toUpperCase() + user?.email?.split('@')[0]?.slice(1)}</h1>
+                    <h1 className="text-2xl font-bold text-white">{user?.name}</h1>
                     <p className="text-green-100 text-sm mt-1">Discover and book your next event</p>
                 </div>
                 <Link to="/browse"

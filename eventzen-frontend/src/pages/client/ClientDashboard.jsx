@@ -31,7 +31,7 @@ const ClientDashboard = () => {
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl px-8 py-8 mb-8 flex items-center justify-between">
                 <div>
                     <p className="text-blue-200 text-sm font-medium mb-1">Welcome back 👋</p>
-                    <h1 className="text-2xl font-bold text-white">{user?.email?.split('@')[0]?.charAt(0).toUpperCase() + user?.email?.split('@')[0]?.slice(1)}</h1>
+                    <h1 className="text-2xl font-bold text-white">{user?.name}</h1>
                     <p className="text-blue-200 text-sm mt-1">Manage your event requests from here</p>
                 </div>
                 <Link to="/request-event"
